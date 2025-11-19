@@ -1,4 +1,4 @@
-PWD /home/snapp/ximeraProject/listsDeliverables/.ximera_local
+PWD /home/snapp/ximeraProject/tableDeliverables/.ximera_local
 INPUT /etc/texmf/web2c/texmf.cnf
 INPUT /usr/share/texmf/web2c/texmf.cnf
 INPUT /usr/share/texlive/texmf-dist/web2c/texmf.cnf
@@ -20,6 +20,7 @@ INPUT src/metadata.dtx
 INPUT src/macros.dtx
 INPUT src/theorems.dtx
 INPUT src/enumerate.dtx
+INPUT src/tables.dtx
 INPUT src/proof.dtx
 INPUT src/only.dtx
 INPUT src/outcomes.dtx
@@ -70,6 +71,7 @@ INPUT src/jax.dtx
 INPUT src/css.dtx
 INPUT src/sectioning.dtx
 INPUT src/enumerate.dtx
+INPUT src/tables.dtx
 INPUT src/title.dtx
 INPUT src/abstract.dtx
 INPUT src/image.dtx
@@ -796,6 +798,15 @@ INPUT ./src/html.dtx
 INPUT src/html.dtx
 INPUT ./src/html.dtx
 INPUT src/html.dtx
+INPUT ./src/enumerate.dtx
+INPUT src/enumerate.dtx
+INPUT ./src/enumerate.dtx
+INPUT src/enumerate.dtx
+INPUT ./src/tables.dtx
+INPUT src/tables.dtx
+INPUT ./src/tables.dtx
+INPUT src/tables.dtx
+INPUT /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmsl10.tfm
 INPUT ./src/suppress.dtx
 INPUT src/suppress.dtx
 INPUT ./src/suppress.dtx
@@ -840,6 +851,7 @@ INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb
+INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsl10.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsltt10.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb
 INPUT /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss17.pfb

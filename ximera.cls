@@ -17,6 +17,7 @@
 %% src/macros.dtx  (with options: `classXimera')
 %% src/theorems.dtx  (with options: `classXimera')
 %% src/enumerate.dtx  (with options: `classXimera')
+%% src/tables.dtx  (with options: `classXimera')
 %% src/proof.dtx  (with options: `classXimera')
 %% src/only.dtx  (with options: `classXimera')
 %% src/outcomes.dtx  (with options: `classXimera')
@@ -54,7 +55,7 @@
 %% src/preamble.dtx  (with options: `classXimera')
 %% ------------:| ------------------------------------------------------------
 %%       ximera:| Simultaneously writing print and online interactive materials
-%%       Author:| Jim Fowler and Oscar Levin and Jason Nowell and Wim Obbels and Hans Parshall and Bart Snapp
+%%       Author:| Jim Fowler and Jeff Kuan and Oscar Levin and Jason Nowell and Wim Obbels and Hans Parshall and Bart Snapp
 %%       E-mail:| bart.snapp@gmail.com
 %%      License:| Released under the LaTeX Project Public License v1.3c or later
 %%          See:| http://www.latex-project.org/lppl.txt
@@ -170,11 +171,11 @@
 \RequirePackage{xifthen}% http://ctan.org/pkg/xifthen
 \RequirePackage{multido}% http://ctan.org/pkg/multido
 \RequirePackage{listings} %% is this required???
-
 \RequirePackage{xkeyval}
-
+\RequirePackage{expl3}% for tables to use LaTeX3 programming
 \RequirePackage{currfile}
 \RequirePackage{comment}
+\RequirePackage{tabularray}% For accessibility features in tables
 \RequirePackage{gettitlestring}
 \RequirePackage{nameref}
 \RequirePackage{epstopdf}
@@ -334,6 +335,134 @@
 \renewcommand{\labelenumi}{\theenumi}
 \renewcommand{\theenumii}{\textup{(\roman{enumii})}}
 \renewcommand{\labelenumii}{\theenumii}
+\ExplSyntaxOn
+\__tblr_keys_define:nn { table/inner }
+  {
+    xmcolhead .code:n = \__tblr_keys_gput:nn { xmcolhead } {#1},
+  }
+
+\int_new:N \lTblrxmColHeadInt
+
+\int_new:N \lTblrxmColDiffInt
+
+\int_new:N \lTblrxmRowDiffInt
+
+\int_new:N \lTblrxmCellRowSpanInt
+
+\int_new:N \lTblrxmColGroupCheck
+
+\int_new:N \myInteger
+
+\int_new:N \lTblrTestingInt
+
+\int_new:N \l_my_test_int
+
+\tl_new:N \ColSpanEx_tl
+
+\int_new:N \ColSpanEx
+
+\str_new:N \myString
+
+\tl_new:N \l_my_tl
+
+\prop_new:N \g__tblr_testing_prop
+
+\prop_new:N \l__tblr_testing_prop
+
+\str_new:N \l__tblr_testing_prop_str
+
+\cs_new:Npn \add_integer_entry:nn #1 #2
+  {
+    \prop_put:Nnn \l__tblr_testing_prop { #1 } { #2 }
+  }
+
+\NewDocumentCommand{\AddIntegerEntry}{mm}
+  {
+    \add_integer_entry:nn { #1 } { #2 }
+  }
+
+
+\cs_new:Npn \string_to_int_var:nN #1 #2
+  {
+    \int_set:Nn #2 { #1 }
+  }
+
+\cs_new:Npn \prop_get_to_int:NnN #1 #2 #3
+  {
+    \int_set:Nn #3 { \prop_item:Nn #1 { #2 } }
+  }
+
+\cs_new_protected:Npn \__tblr_build_col_head_foot:
+  {
+    %% \lTblrColHeadInt can not be empty, so we append '+ 0'.
+    \int_set:Nn \lTblrxmColHeadInt
+      { \__tblr_prop_item:ne { inner } { xmcolhead } + 0 }
+    \int_compare:nNnTF { \lTblrxmColHeadInt } > { 0 }
+      {
+        \__tblr_build_one_table:nnNN {1} { \lTblrxmColHeadInt }
+          \c_true_bool \c_true_bool
+      }
+  }
+
+\prop_new:N \l__tblr_colgrouptest_prop
+
+\cs_new:Npn \add_integer_entry_v:nn #1 #2
+  {
+    \prop_put:Nnn \l__tblr_colgrouptest_prop { #1 } { #2 }
+  }
+
+\NewDocumentCommand{\AddIntegerEntryV}{mm}
+  {
+    \add_integer_entry_v:nn { #1 } { #2 }
+  }
+
+\tl_new:N  \l__tblr_z_tl
+
+\tl_new:N  \l__tblr_A_tl
+
+\tl_new:N  \l__tblr_B_tl
+
+
+   %\AddIntegerEntry{first_entry}{43}
+
+%% #1: data name; #2: data index 1; #3: data index 2; #4: key
+\cs_new:Npn \__tblr_data_test_item:nnnn #1 #2 #3 #4
+  {
+      \intarray_item:cn { g__tblr_#1_ \int_use:N \gTblrLevelInt _intarray }
+        { \__tblr_data_key_to_int:nnnn {#1} {#2} {#3} {#4} }
+
+  }
+
+\str_new:N \l_test_string
+\__tblr_keys_define:nn { table/inner }
+  {
+    caption .code:n = \__tblr_keys_gput:nn { caption } {#1},
+    summary .code:n = \__tblr_keys_gput:nn { summary } {#1}
+  }
+
+\tl_new:N \l__tblr_caption_tl
+\str_new:N \l__tblr_caption_str
+
+\tl_new:N \l__tblr_summary_tl
+\str_new:N \l__tblr_summary_str
+
+\cs_new:Npn \l__tblr_write_caption: #1
+{
+   \tl_set:Nn \l__tblr_caption_tl
+      { \__tblr_prop_item:ne { inner } { caption }  }
+   \str_set:Ne \l__tblr_caption_str
+      { \tl_to_str:e \l__tblr_caption_tl }
+    \tl_set:Nn \l__tblr_summary_tl
+      { \__tblr_prop_item:ne { inner } { summary }  }
+   \str_set:Ne \l__tblr_summary_str
+      { \tl_to_str:e \l__tblr_summary_tl }
+}
+
+\int_new:N \l__tlbr_number_cols_int
+
+\tl_new:N \l__tblr_colgroup_tl
+\ExplSyntaxOff
+
 \renewcommand{\qedsymbol}{$\blacksquare$}
 \renewenvironment{proof}[1][\proofname]
   {\begin{trivlist}\item[\hskip \labelsep \itshape \bfseries #1{}\hspace{2ex}]}

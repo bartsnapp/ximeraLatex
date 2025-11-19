@@ -1,0 +1,417 @@
+% \subsubsection{Making tables accessible}
+% \textsl{TailorSwiftBots} developed the following code to make tables more accessible.
+%    \begin{macrocode}
+%<*classXimera>
+\ExplSyntaxOn
+\__tblr_keys_define:nn { table/inner }
+  {
+    xmcolhead .code:n = \__tblr_keys_gput:nn { xmcolhead } {#1},
+  }
+
+\int_new:N \lTblrxmColHeadInt
+
+\int_new:N \lTblrxmColDiffInt
+
+\int_new:N \lTblrxmRowDiffInt
+
+\int_new:N \lTblrxmCellRowSpanInt
+
+\int_new:N \lTblrxmColGroupCheck
+
+\int_new:N \myInteger
+
+\int_new:N \lTblrTestingInt
+
+\int_new:N \l_my_test_int
+
+
+\tl_new:N \ColSpanEx_tl
+
+\int_new:N \ColSpanEx
+
+\str_new:N \myString
+
+\tl_new:N \l_my_tl
+
+
+\prop_new:N \g__tblr_testing_prop
+
+\prop_new:N \l__tblr_testing_prop
+
+\str_new:N \l__tblr_testing_prop_str
+
+\cs_new:Npn \add_integer_entry:nn #1 #2
+  {
+    \prop_put:Nnn \l__tblr_testing_prop { #1 } { #2 }
+  }
+
+\NewDocumentCommand{\AddIntegerEntry}{mm}
+  {
+    \add_integer_entry:nn { #1 } { #2 }
+  }
+
+%\AddIntegerEntry{first_entry}{44}
+
+\cs_new:Npn \string_to_int_var:nN #1 #2
+  {
+    \int_set:Nn #2 { #1 }
+  }
+
+\cs_new:Npn \prop_get_to_int:NnN #1 #2 #3
+  {
+    \int_set:Nn #3 { \prop_item:Nn #1 { #2 } }
+  }
+
+\cs_new_protected:Npn \__tblr_build_col_head_foot:
+  {
+    %% \lTblrColHeadInt can not be empty, so we append '+ 0'.
+    \int_set:Nn \lTblrxmColHeadInt
+      { \__tblr_prop_item:ne { inner } { xmcolhead } + 0 }
+    \int_compare:nNnTF { \lTblrxmColHeadInt } > { 0 }
+      {
+        \__tblr_build_one_table:nnNN {1} { \lTblrxmColHeadInt }
+          \c_true_bool \c_true_bool
+      }
+  }
+
+\prop_new:N \l__tblr_colgrouptest_prop
+
+\cs_new:Npn \add_integer_entry_v:nn #1 #2
+  {
+    \prop_put:Nnn \l__tblr_colgrouptest_prop { #1 } { #2 }
+  }
+
+\NewDocumentCommand{\AddIntegerEntryV}{mm}
+  {
+    \add_integer_entry_v:nn { #1 } { #2 }
+  }
+
+\tl_new:N  \l__tblr_z_tl 
+
+
+\tl_new:N  \l__tblr_A_tl 
+
+
+\tl_new:N  \l__tblr_B_tl 
+
+%\prop_put:Nnn \l__tblr_testing_prop {first_entry} { 47 }
+
+%\AddIntegerEntryV{firsttest}{ 42 }
+   %\AddIntegerEntry{first_entry}{43}
+
+
+
+
+
+%% #1: data name; #2: data index 1; #3: data index 2; #4: key
+\cs_new:Npn \__tblr_data_test_item:nnnn #1 #2 #3 #4
+  {
+      \intarray_item:cn { g__tblr_#1_ \int_use:N \gTblrLevelInt _intarray }
+        { \__tblr_data_key_to_int:nnnn {#1} {#2} {#3} {#4} }
+      
+  }
+
+\str_new:N \l_test_string
+\__tblr_keys_define:nn { table/inner }
+  {
+    caption .code:n = \__tblr_keys_gput:nn { caption } {#1},
+    summary .code:n = \__tblr_keys_gput:nn { summary } {#1}
+  }
+
+
+\tl_new:N \l__tblr_caption_tl
+\str_new:N \l__tblr_caption_str
+
+\tl_new:N \l__tblr_summary_tl
+\str_new:N \l__tblr_summary_str
+
+\cs_new:Npn \l__tblr_write_caption: #1
+{
+   \tl_set:Nn \l__tblr_caption_tl
+      { \__tblr_prop_item:ne { inner } { caption }  }
+   \str_set:Ne \l__tblr_caption_str
+      { \tl_to_str:e \l__tblr_caption_tl }
+    \tl_set:Nn \l__tblr_summary_tl
+      { \__tblr_prop_item:ne { inner } { summary }  }
+   \str_set:Ne \l__tblr_summary_str
+      { \tl_to_str:e \l__tblr_summary_tl }
+}
+
+\int_new:N \l__tlbr_number_cols_int
+
+\tl_new:N \l__tblr_colgroup_tl 
+\ExplSyntaxOff
+%</classXimera>
+%    \end{macrocode}
+%    \begin{macrocode}
+%<*cfgXimera>
+
+\ExplSyntaxOn
+% Get the value of rowhead key and save it in the \lTblrRowHeadInt for later use
+\def\:setrowhead{
+    \int_set:Nn \lTblrRowHeadInt
+      { \__tblr_prop_item:ne { inner } { rowhead } + 0 }
+}
+
+
+   
+
+% Get the value of xmcolhead key and save it in the \lTblrxmColHeadInt for later use and \lTblrxmColDiffInt is the difference in location
+% between the column header and the actual column
+\def\:setcellinfo{
+    \int_set:Nn \lTblrxmColHeadInt
+      { \__tblr_prop_item:ne { inner } { xmcolhead } + 0 }
+    \int_set:Nn \lTblrxmColDiffInt
+      { \HCol - \lTblrxmColHeadInt   }
+    \int_set:Nn \lTblrxmRowDiffInt
+      { \HRow - \lTblrRowHeadInt   }
+    %\prop_get_to_int:NnN \l__tblr_testing_prop { Y} \lTblrxmColGroupCheck
+    %\prop_get_to_int:NnN \l__tblr_colgrouptest_prop { first } \myInteger
+    %\xdef\output{\@arabic\lTblrxmColGroupCheck}
+    %\string_to_int_var:nN \lTblrxmColGroupCheck \myInteger
+    %\int_set:Nn \lTblrxmColGroupCheck {\prop_item:Ne \l__tblr_testing_prop {first} }
+    %\int_set:Nn \output_test{\@arabic\lTblrxmColGroupCheck}
+}
+
+
+% print either th with scope or td ... 
+\def\:testcell{  
+    \ifnum\lTblrxmColDiffInt<1
+      \ifnum\lTblrxmRowDiffInt<1
+        td
+      \else
+        \ifnum\HRowspan>1
+          th \space scope="rowgroup"
+        \else
+          th \space scope="row"
+        \fi
+      \fi
+    \else 
+      \ifnum\lTblrxmRowDiffInt<1
+        \ifnum\HMultispan>1
+          th \space scope="colgroup"
+        \else 
+          th \space scope="col"
+        \fi
+      \else
+        td
+      \fi
+    \fi}
+
+
+
+
+
+\ExplSyntaxOff
+
+
+
+
+% this is the configuration for the tabularray package with the support for <th>
+\catcode`\:=11
+\makeatletter
+\Configure{tabularray}{%
+  \ifvmode\IgnorePar\fi\EndP%
+  \gHAdvance\Next:TableNo by 1 \global\let\TableNo=\Next:TableNo%
+  \HCode{<table class="tabularray \@currenvir" id="tbl-\TableNo">}
+}{\ifvmode\IgnorePar\fi\EndP\HCode{</table>}}
+{\:setrowhead\HCode{<tr id="row-\TableNo-\HRow-">}}{\HCode{</tr>}}
+{\:setcellinfo\HCode{<\:testcell\space\:colgroupcheck \:testcheck colspan="\HMultispan" rowspan="\HRowspan"  id="cell\TableNo-\HRow-\HCol" style="\CellStyle" \CellAttributes>}}{\HCode{</\:testcell>}}
+%{\Configure{tabularrayattributes}{rowspan="\lTblrCellRowSpanInt"}}
+%the line below cannot be deleted 
+{\Configure{tabularrayattributes}{}}{}
+\catcode`\:=12
+\makeatother
+%</cfgXimera>
+%    \end{macrocode}
+%    \begin{macrocode}
+%<*htXimera>
+\makeatletter
+\ExplSyntaxOn
+\cs_new:Npn \l__tblr_testing_func_three:n #1
+{
+  \tl_set:Nn \l__tblr_colgroup_tl {  }
+  \int_set:Nn \l__tlbr_number_cols_int { \c@colcount }
+  \int_step_variable:nNn { 1 } \l__tblr_A_tl  %%this checks the first row for colhead, I don't think we should support coldhead in the second row
+  {
+  \int_step_variable:nNn {\l__tlbr_number_cols_int } \l__tblr_z_tl  
+  {
+    \tl_set:Nn \ColSpanEx_tl
+          {
+            \__tblr_data_item:neen { cell } { \l__tblr_A_tl } { \l__tblr_z_tl } { colspan } %lines 942 to 951
+          }  
+    %\int_set:Nn \lTblrTestingInt {8000 + \lTblrxmColGroupCheck + #1}
+    \int_set:Nn \lTblrTestingInt {\ColSpanEx_tl} %currently this is an integer, if a later update is needed i think it's better as an integer than a string
+    \ifnum\int_eval:n{\l__tblr_z_tl}>0 %%this if statement is always true, it literally does nothing
+      \prop_put:Nnn \l__tblr_testing_prop {\l__tblr_z_tl } {\lTblrTestingInt} 
+      \prop_get_to_int:NnN \l__tblr_testing_prop { \l__tblr_z_tl  } \lTblrxmColGroupCheck
+      \def\outputV{\@arabic\lTblrxmColGroupCheck }
+      \tl_put_right:Ne \l__tblr_colgroup_tl { <colgroup \space span="\outputV"></colgroup> }
+    \fi
+  }
+  }
+}
+
+
+%\prop_get_to_int:NnN \l__tblr_testing_prop {Y} \lTblrxmColGroupCheck %% needs to be in Arabic
+
+
+
+\long\def\:tempa#1#2#3#4{%
+  % insert <table>...</table>
+  \a:tabularray   \o:__tblr_environ_code:nnnn:{#1}{#2}{#3}{#4}\b:tabularray
+}
+
+
+\HLet\__tblr_environ_code:nnnn\:tempa
+
+
+\long\def\:tempa#1{
+  \int_set:Nn \c@rownum {#1}\xdef\HRow{\@arabic\c@rownum}
+  \int_step_function:nnnN { 13 } { 1 } {14} \l__tblr_testing_func_three:n
+  %\int_step_function:nnnN { 13 } { 1 } {14} \l__tblr_testing_func_four:n
+  \int_step_function:nnnN { 13 } { 1 } {14} \l__tblr_write_caption:
+  \def\caption_string{\l__tblr_caption_str}
+  \def\colgroup_string{\l__tblr_colgroup_tl}
+  \def\outputV{\@arabic\lTblrxmColGroupCheck }
+  %% <col> <colgroup \space span="\outputV"></colgroup>
+  \ifnum\HRow=1
+    \HCode{  <caption>\l__tblr_caption_str <span>\l__tblr_summary_str </span> </caption> \colgroup_string } 
+  \fi
+  \c:tabularray\o:__tblr_build_row:N:{#1}\d:tabularray
+  }
+\HLet\__tblr_build_row:N\:tempa
+
+% disable rules
+\ht:special{t4ht@_}
+
+% #1 row number, #2 column, #3 hline number (there can be multiple), #4 css property to be set
+\def\:tblr:hlinestyle#1#2#3#4{
+  % get line height
+  \tl_set:Ne \l__tblr_h_tl{ \__tblr_spec_item:ne { hline } { [#1](#3) / @hline-height } }
+  % get dash style
+  \def\@tblr@dash{} % remove "dash" word from the variable for correct CSS string
+  \tl_set:Ne \l__tblr_f_tl{\__tblr_spec_item:ne { hline } { [#1][#2](#3) / @dash }}
+  % create CSS only when a dash style is set
+  \tl_if_empty:NF\l__tblr_f_tl{
+    % get hline color
+    \tl_set:Ne \l__tblr_g_tl { \__tblr_spec_item:ne { hline } { [#1][#2](#3) / fg } }
+    \def\:hlinecolor{\#000000}
+    % convert color to CSS value if color is set
+    \tl_if_empty:NF\l__tblr_g_tl{\get:xcolorcss{\l__tblr_g_tl}\:hlinecolor}
+    % \Configure{tabularraystyles} doesn't expand attributes, so we need to expand it here
+    % otherwise, we would get wrong color and hline style in the last row, because this macro is called twice here
+    \cs_set:ce{#4:}{#4:\dim_to_decimal_in_unit:nn{\l__tblr_h_tl*2}{1px}px~\l__tblr_f_tl\space~\:hlinecolor;}
+    \Configure{tabularraystyles}{\csname#4:\endcsname}
+  }
+}
+
+
+
+\def\:tblr:vlinestyle#1#2#3#4{
+  \tl_set:Ne \l__tblr_t_tl{ \__tblr_spec_item:ne { vline } { [#2](#3) / @vline-width } }
+  \def\@tblr@dash{} % remove "dash" word from the variable for correct CSS string
+  \tl_set:Ne \l__tblr_f_tl{\__tblr_spec_item:ne { vline } { [#1][#2](#3) / @dash }}
+  \tl_if_empty:NF\l__tblr_f_tl{
+    \tl_set:Ne \l__tblr_g_tl { \__tblr_spec_item:ne { vline } { [#1][#2](#3) / fg } }
+    \def\:hlinecolor{\#000000}
+    % convert color to CSS value if color is set
+    \tl_if_empty:NF\l__tblr_g_tl{\get:xcolorcss{\l__tblr_g_tl}\:hlinecolor}
+    % \Configure{tabularraystyles} doesn't expand attributes, so we need to expand it here
+    % otherwise, we would get wrong color and hline style in the last row, because this macro is called twice here
+    \cs_set:ce{#4:}{#4:\dim_to_decimal_in_unit:nn{\l__tblr_t_tl*2}{1px}px~\l__tblr_f_tl\space~\:hlinecolor;}
+    \Configure{tabularraystyles}{\csname#4:\endcsname}
+  }
+}
+
+\long\def\:tempa#1#2{%
+% find columns that are covered by rowspan and colspan
+  \xdef\HCol{\@arabic\c@colnum}
+  \xdef\HRow{\@arabic\c@rownum}
+  %I added the arabic below -- Jeff
+  \xdef\HMultispan{\@arabic\lTblrCellColSpanInt}
+  \xdef\HRowspan{\@arabic\lTblrCellRowSpanInt}
+ 
+
+  %\xdef\XMColGroupCheck{\@arabiclTblrxmColGroupCheck}
+  %\xdef\output_test{\@arabic\lTblrxmColGroupCheck}
+  \let\CellAttributes\@empty
+  \let\CellStyle\@empty
+  % calculate ignored cells, if the current cell uses colspan or rowspan
+  \int_step_inline:nnn{\c@rownum }{\c@rownum - 1 + \lTblrCellRowSpanInt}{
+    \int_step_inline:nnn{\c@colnum }{\c@colnum - 1  + \lTblrCellColSpanInt}{
+      % the loop always matches the current cell, we must ignore it
+      \str_if_eq:eeF{\HCol.\HRow}{####1.##1}{%
+        \cs_gset:cpn{ignoredcell-####1-##1}{}
+      }
+    }
+  }
+  \cs_if_exist_use:c{tabularray_halign:\g__tblr_cell_halign_tl}
+  \cs_if_exist_use:c{tabularray_valign:\g__tblr_cell_valign_tl}
+  % the vertical aligment can be set also in \g__tblr_cell_middle_tl, so we should try it as well
+  \cs_if_exist_use:c{tabularray_valign:\g__tblr_cell_middle_tl}
+  % calculate column width
+  \dim_compare:nNnT {\__tblr_data_item:nen{column}{\HCol}{@col-width}} > {0pt}{
+    \__tblr_get_table_width:% initialize \tablewidth
+    \edef\HColWidth{\fp_eval:n{\__tblr_data_item:nen{column}{\HCol}{@col-width}/\tablewidth*100}\%}
+    % save table width, preferably in CSS
+    \a:tabularraycolumnwidth%
+  }
+  % there can be multiple hlines for each cell, but we only suport the first one, because of limitations of CSS
+  \:tblr:hlinestyle{#1}{#2}{1}{border-top}
+  \int_compare:nNnT{\HRow + \HRowspan - 1} = {\c@rowcount}{%
+    % draw hline below the last row
+    \:tblr:hlinestyle{\int_eval:n{\c@rownum + 1}}{#2}{1}{border-bottom}
+  }
+  % the same is true for vlines
+  \:tblr:vlinestyle{#1}{#2}{1}{border-left}
+  \int_compare:nNnT{\HCol + \HMultispan - 1} = {\c@colcount}{%
+    % draw hline below the last row
+    \:tblr:vlinestyle{#1}{\int_eval:n{\c@colnum + 1}}{1}{border-right}
+  }
+  % support for the background color
+  \tl_set:Ne \l__tblr_b_tl
+  { \__tblr_data_item:neen { cell } {#1} {#2} { background } }
+  % save background color to the list of CSS, if it is set
+  \tl_if_empty:NF \l__tblr_b_tl{
+    \get:xcolorcss{\l__tblr_b_tl}\:bgcolor
+    \Configure{tabularraystyles}{background-color: \:bgcolor;}
+  }
+  % We can use something like \Configure{tabularrayattributes}{rowspan="\HRowspan"} in \Configure{tabularray}
+  % to declare correct attributes for joined cells
+  \int_compare:nNnT {\HRowspan} > {1}{\g:tabularray}
+  \int_compare:nNnT {\HMultispan} > {1}{\h:tabularray}
+  \cs_if_exist:cTF{ignoredcell-\the\c@colnum-\the\c@rownum}{%
+    \a:tabularrayignoredcell\e:tabularray\o:__tblr_build_cell_content:NN:{#1}{#2}\f:tabularray\b:tabularrayignoredcell
+  }{%
+    \e:tabularray\o:__tblr_build_cell_content:NN:{#1}{#2}\f:tabularray
+  }
+  % the ignored cell is global, so we must undefine it after the thes
+  \cs_undefine:c{ignoredcell-\the\c@colnum-\the\c@rownum}%
+}
+\HLet\__tblr_build_cell_content:NN\:tempa
+
+\HLet\__tblr_get_vcenter_box:N\:gobble
+
+%Jeff moved this here
+\def\output{\@arabic\lTblrxmColGroupCheck}
+\def\:colgroupcheck{
+  \ifnum\lTblrxmColGroupCheck>0
+    test="\output" \space
+  \else
+    \space
+  \fi
+}
+
+\def\:testcheck{
+  \ifnum\myInteger>0
+    test="taylor swift" \space
+  \else
+    \space
+  \fi
+}
+\ExplSyntaxOff
+\makeatother
+%</htXimera>
+%    \end{macrocode}
+
